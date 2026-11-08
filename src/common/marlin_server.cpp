@@ -2855,7 +2855,12 @@ static void _server_print_loop(void) {
 
 #ifdef PARK_HEAD_ON_PRINT_FINISH
             if (!server.print_is_serial) {
-                retract_and_lift();
+                retract();
+                // If the end gcode disabled the Z motors (M18/M84), they unhomed Z.
+                // Lifting would then do a homing move, re-enabling the motors against the user's intent.
+                if (axes_home_level.is_homed(Z_AXIS, AxisHomeLevel::imprecise)) {
+                    lift_head();
+                }
                 park_head(false);
             }
 #endif // PARK_HEAD_ON_PRINT_FINISH
